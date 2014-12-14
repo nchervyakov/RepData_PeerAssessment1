@@ -1,17 +1,14 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
-```{r, echo=TRUE, results="hide",warning=FALSE, message=FALSE}
+
+```r
 library(dplyr)
 ```
 
-```{r preparing, echo=TRUE}
+
+```r
 if (!file.exists("data/activity.csv")) {
     unzip("activity.zip", exdir = "data")    
 }
@@ -20,34 +17,50 @@ datadt <- tbl_df(data)
 ```
 
 ## What is mean total number of steps taken per day?
-```{r mean_values, echo=TRUE}
-print(paste("Steps mean: ", mean(data$step, na.rm = TRUE)))
-print(paste("Steps median: ", median(data$step, na.rm = TRUE)))
 
+```r
+print(paste("Steps mean: ", mean(data$step, na.rm = TRUE)))
+```
+
+```
+## [1] "Steps mean:  37.3825995807128"
+```
+
+```r
+print(paste("Steps median: ", median(data$step, na.rm = TRUE)))
+```
+
+```
+## [1] "Steps median:  0"
 ```
 
 ## What is the average daily activity pattern?
 
-```{r daily_pattern, echo=TRUE, fig.path="figure/"}
+
+```r
 averagedData <- summarise(group_by(datadt, interval), steps = mean(steps, na.rm = TRUE))
 plot(x = averagedData$interval, y = averagedData$steps, type = "l", xlab="5-minute intervals", ylab="Steps", main="Average daily activity pattern")
+```
+
+![](figure/daily_pattern-1.png) 
+
+```r
 maximumAveInterval <- averagedData[order(averagedData$steps, decreasing = TRUE), ][[1, "interval"]]
 ```
 
-**Maximum steps interval is: `r maximumAveInterval`**
+**Maximum steps interval is: 835**
 
 
 ## Imputing missing values
 
-```{r missing_vals, echo = TRUE}
+
+```r
 # 1. Missing vals
 missingRows <- filter(datadt, is.na(steps) | is.na(date) | is.na(interval))
 missingRowsCount <- count(missingRows)$n
-
-
 ```
 
-* Missing rows: `r missingRowsCount`
+* Missing rows: 2304
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
