@@ -9,6 +9,7 @@ output:
 ## Loading and preprocessing the data
 ```{r, echo=TRUE, results="hide",warning=FALSE, message=FALSE}
 library(dplyr)
+library(ggplot2)
 ```
 
 ```{r preparing, echo=TRUE}
@@ -17,14 +18,26 @@ if (!file.exists("data/activity.csv")) {
 }
 data <- read.csv("data/activity.csv")
 datadt <- tbl_df(data)
+datadt$date <- as.Date(datadt$date)
+datadt$steps <- as.numeric(datadt$steps)
+datadt$interval <- as.numeric(datadt$interval)
 ```
+
+
 
 ## What is mean total number of steps taken per day?
-```{r mean_values, echo=TRUE}
-print(paste("Steps mean: ", mean(data$step, na.rm = TRUE)))
-print(paste("Steps median: ", median(data$step, na.rm = TRUE)))
+```{r mean_values, echo=TRUE, warning=FALSE}
+grouppedByDate <- group_by(datadt, date)
+stepsByDate <- summarise(grouppedByDate, steps = sum(steps, na.rm = TRUE))
+stepsByDate$date <- as.Date(stepsByDate$date)
+plot(stepsByDate$date, stepsByDate$steps, type = "h", xlab = "Date", ylab = "Steps", main = "Total steps by date")
+
+print(paste("Steps mean: ", mean(stepsByDate$steps, na.rm = TRUE)))
+print(paste("Steps median: ", median(stepsByDate$steps, na.rm = TRUE)))
 
 ```
+
+
 
 ## What is the average daily activity pattern?
 
@@ -34,22 +47,72 @@ plot(x = averagedData$interval, y = averagedData$steps, type = "l", xlab="5-minu
 maximumAveInterval <- averagedData[order(averagedData$steps, decreasing = TRUE), ][[1, "interval"]]
 ```
 
+
+
 **Maximum steps interval is: `r maximumAveInterval`**
 
 
 ## Imputing missing values
 
-```{r missing_vals, echo = TRUE}
+```{r missing_vals, echo = TRUE, warning = FALSE}
 # 1. Missing vals
-missingRows <- filter(datadt, is.na(steps) | is.na(date) | is.na(interval))
-missingRowsCount <- count(missingRows)$n
+missingRows <- filter(datadt, is.na(steps))
+print(paste("Missing rows: ", count(missingRows)$n))
+
+# 2. Devise a stratagy for filling NA steps
+fixSteps <- function (steps, interv) { 
+    if (is.na(steps)) { 
+        round(filter(averagedData, interval == interv)$steps)
+    } else { 
+        steps 
+    }  
+};
+
+# 3. Fill the missing values
+filledDatadt <- 
+    tbl_dt(datadt) %>% 
+    rowwise() %>% 
+    mutate(steps = fixSteps(steps, interval))
+
+# 4. Make a histogram and calculate means
+grouppedByDate <- group_by(filledDatadt, date)
+stepsByDate <- summarise(grouppedByDate, steps = sum(steps))
+plot(stepsByDate$date, stepsByDate$steps, type = "h", xlab = "Date", ylab = "Steps", main = "Total steps by date (filled by mean interval value across days)")
+
+print(paste("Steps mean: ", mean(stepsByDate$steps)))
+print(paste("Steps median: ", median(stepsByDate$steps)))
+
+```
+
+**Wee can see that imputing the NA values lead to increasing the mean and median.**
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+
+# Function to mark day type for rows
+Sys.setlocale("LC_TIME", "English")
+mark.weekday <- function (rowDate) {
+    dayName <- weekdays(rowDate)
+    if (dayName == "Sat" || dayName == "Sun") { "weekend" } else { "weekday" }
+}
+
+# Add new field
+filledDatadt <- 
+    filledDatadt %>% 
+    rowwise() %>% 
+    mutate(dayType = mark.weekday(date))
+
+
+filledDatadt$dayType <- factor(filledDatadt$dayType)
+
+# Draw a plot
+averagedData <- summarise(group_by(filledDatadt, dayType, interval), steps = mean(steps, na.rm = TRUE))
+qplot(x = averagedData$interval, y = averagedData$steps, xlab="5-minute intervals", ylab="Steps", main="Average daily activity pattern",geom = "path", data = averagedData, facets =  dayType ~ .)
 
 
 ```
 
-* Missing rows: `r missingRowsCount`
+## Thanks for reviewing my work!
 
-## Are there differences in activity patterns between weekdays and weekends?
-
-
-I was very tired and didn't finished the rest.
