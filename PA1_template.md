@@ -1,10 +1,5 @@
 # Reproducible Research: Peer Assessment 1
 
-## Important note!
-
-**Please be patient to other peoples works. This assignment can invoke disputes. So please be generous.**
-
-
 ## Loading and preprocessing the data
 First off, we load the required libraries for data manipulation and plotting
 
@@ -36,9 +31,9 @@ Here we draw a **histogram**, that is the frequencies of total steps per day. Th
 
 
 ```r
-grouppedByDate <- group_by(datadt, date)
-# Do nopt include NA values
-stepsByDate <- summarise(grouppedByDate, steps = sum(steps, na.rm = TRUE))
+grouppedByDate <- group_by(filter(datadt, !is.na(steps)), date)
+
+stepsByDate <- summarise(grouppedByDate, steps = sum(steps))
 hist(stepsByDate$steps, breaks = 20, col = "red", xlab = "Steps per day", main = "Total steps per day histogram")
 ```
 
@@ -50,7 +45,7 @@ print(paste("Steps mean: ", mean(stepsByDate$steps, na.rm = TRUE)))
 ```
 
 ```
-## [1] "Steps mean:  9354.22950819672"
+## [1] "Steps mean:  10766.1886792453"
 ```
 
 ```r
@@ -58,7 +53,7 @@ print(paste("Steps median: ", median(stepsByDate$steps, na.rm = TRUE)))
 ```
 
 ```
-## [1] "Steps median:  10395"
+## [1] "Steps median:  10765"
 ```
 
 
@@ -78,7 +73,7 @@ maximumAveInterval <- averagedData[order(averagedData$steps, decreasing = TRUE),
 
 
 
-**Maximum steps interval is: 835**
+**The number of interval with maximum steps is: 835**
 
 
 ## Imputing missing values
@@ -142,7 +137,7 @@ print(paste("Steps median: ", median(stepsByDate$steps)))
 ## [1] "Steps median:  10762"
 ```
 
-**Wee can see that imputing the NA values lead to increasing the mean and median.**
+**Wee can see that imputing the NA values lead to the increasing the frequency of days with the high step per day rate near the mean and median.**
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -182,5 +177,5 @@ qplot(x = averagedData$interval, y = averagedData$steps, xlab="5-minute interval
 
 ![](PA1_template_files/figure-html/weeksdays_weekend-1.png) 
 
-## Thanks for reviewing my work!
+
 

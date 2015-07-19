@@ -5,11 +5,6 @@ output:
     keep_md: true
 ---
 
-## Important note!
-
-**Please be patient to other peoples works. This assignment can invoke disputes. So please be generous.**
-
-
 ## Loading and preprocessing the data
 First off, we load the required libraries for data manipulation and plotting
 
@@ -38,9 +33,9 @@ datadt$interval <- as.numeric(datadt$interval)
 Here we draw a **histogram**, that is the frequencies of total steps per day. This plot (and the third one) causes the most difficulties among different people.
 
 ```{r mean_values, echo=TRUE, warning=FALSE}
-grouppedByDate <- group_by(datadt, date)
-# Do nopt include NA values
-stepsByDate <- summarise(grouppedByDate, steps = sum(steps, na.rm = TRUE))
+grouppedByDate <- group_by(filter(datadt, !is.na(steps)), date)
+
+stepsByDate <- summarise(grouppedByDate, steps = sum(steps))
 hist(stepsByDate$steps, breaks = 20, col = "red", xlab = "Steps per day", main = "Total steps per day histogram")
 
 # Also exclude NA
@@ -60,7 +55,7 @@ maximumAveInterval <- averagedData[order(averagedData$steps, decreasing = TRUE),
 
 
 
-**Maximum steps interval is: `r maximumAveInterval`**
+**The number of interval with maximum steps is: `r maximumAveInterval`**
 
 
 ## Imputing missing values
@@ -97,7 +92,7 @@ print(paste("Steps median: ", median(stepsByDate$steps)))
 
 ```
 
-**Wee can see that imputing the NA values lead to increasing the mean and median.**
+**Wee can see that imputing the NA values lead to the increasing the frequency of days with the high step per day rate near the mean and median.**
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -128,5 +123,5 @@ averagedData <- summarise(group_by(filledDatadt, dayType, interval), steps = mea
 qplot(x = averagedData$interval, y = averagedData$steps, xlab="5-minute intervals", ylab="Steps", main="Average daily activity pattern",geom = "path", data = averagedData, facets =  dayType ~ ., color=dayType)
 ```
 
-## Thanks for reviewing my work!
+
 
